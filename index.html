@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<!-- saved from url=(0160)https://cdn-xzd.skybluek.com/index.html?debug=1&zoneKey=frsjz_me&htgserver=login-xzd.skybluek.com&ran=0.4659126027003988&openId=f247b5880bd8d24b450bfe7c63d58b19 -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>凡人神将传</title>
+    <!-- 防止被缓存-->
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Cache-Control" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <!-- 极速模式-->
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="full-screen" content="true">
+    <meta name="screen-orientation" content="portrait">
+    <meta name="x5-fullscreen" content="true">
+    <meta name="360-fullscreen" content="true">
+    <style>
+        html, body {
+            -ms-touch-action: none;
+            background: #000000;
+            padding: 0;
+            border: 0;
+            margin: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="game_rect" class="game_rect" style="position: absolute; margin: auto;width: 100%;height: 100%;overflow: hidden;pointer-events: none;"></div>
+<div id="egret-player" style="position: absolute; margin: auto; width: 100%; height: 100%; overflow: hidden;" class="egret-player" data-entry-class="SmallLoading" data-orientation="auto" data-scale-mode="noScale" data-frame-rate="60" data-content-width="540" data-content-height="960" data-show-paint-rect="false" data-multi-fingered="2" data-show-fps="false" data-show-log="false" data-show-fps-style="x:0,y:0,size:12,textColor:0xcccccc,bgAlpha:0.9">
+<canvas width="830" height="946" style="cursor: inherit; position: absolute; inset: -0.5px 0px 0px -0.5px; transform-origin: 0% 0% 0px; transform: matrix(1, 0, 0, 1, 0, 0);"></canvas><div id="StageDelegateDiv" style="position: absolute; left: -0.5px; top: -0.5px; border: none; padding: 0px; transform: matrix(1, 0, 0, 1, 0, 0); transform-origin: 0% 0% 0px;"><div style="position: absolute; left: 0px; top: -100px; border: none; padding: 0px; width: 0px; height: 0px; transform-origin: 0% 0% 0px;"><textarea id="egretTextarea" tabindex="-1" style="resize: none; width: 1px; height: 12px; position: absolute; left: 0px; top: 0px; border: none; padding: 0px; outline: thin; background: none; overflow: hidden; word-break: break-all; opacity: 0;"></textarea><input id="egretInput" type="text" tabindex="-1" style="width: 1px; height: 12px; position: absolute; left: 0px; top: 0px; border: none; padding: 0px; outline: thin; background: none; overflow: hidden; word-break: break-all; opacity: 0;"></div></div></div>
+
+<!-- 启动页loading div -->
+
+
+<script>//index页工具类
+        var IndexMgr = /** @class */ (function () {
+            function IndexMgr() {
+               
+            }
+
+            /**
+             * 请求版本号
+             * @param return response data:{mini(小游戏): 2, native(原生包): 1, web(网页): 3, temp(模板):4}
+             */
+            IndexMgr.prototype.requestVersion = function () {
+
+                var _this = this;
+
+                var htgConfig = window.htgConfig || {};
+                
+                //测试服
+                var release = 0;
+                //测试服登录服地址
+                htgConfig.loginServer = "login-xzd-dev.skybluek.com";
+                //测试服请求版本号地址
+                htgConfig.getVersion = "login-xzd-dev.skybluek.com/ver/get";
+                //测试服模版地址
+                htgConfig.tempurl = "xzd-dev.skybluek.com";
+                //资源服务器地址
+                htgConfig.resServer = "https://xzd-dev.skybluek.com/";
+                
+                window.htgConfig = htgConfig;
+                
+                var verURL = _this.getVersionUrl();
+                
+                var requrl = window.location.protocol + "//" + verURL + "?ran=" + Math.random();
+
+                _this.httpRequest(requrl, function(res) {
+
+                    if(res && res.code == 1)
+                    {
+                        _this.loadHtgInitSdk(res.data, release);
+                    }
+                    else
+                    {
+                        console.log("请求版本号失败!", requrl);
+                    }
+                });
+            }
+
+            /**
+             * 加载htg_init_sdk文件 
+             */
+            IndexMgr.prototype.loadHtgInitSdk = function(jsondata, release) {
+
+                if(!jsondata) return;
+                
+                jsondata.release = release;
+                
+                //服务器取得的版本号，存储起来,用于加载指定版本的外部资源
+                jsondata.initweb = jsondata.web;
+
+                jsondata.inittemp = jsondata.temp;
+
+                if(window.localTemp >= jsondata.temp)
+                {
+                    //使用本地模板
+                    window.USE_LOCAL_TEMP = true;
+
+                    jsondata.temp = window.localTemp;
+                }
+                
+                console.log("正式服:" + !!jsondata.release);
+                
+                console.log("web版本:" + jsondata.web);
+                
+                console.log("模板版本:" + jsondata.temp);
+
+                window.versionData = jsondata;
+                
+                var resServer = window.htgConfig.resServer;
+                
+                this.loadSingleScript(resServer + "libs/webjs/htg_init_sdk_" + jsondata.web + ".js");
+            }
+
+            /**
+             * 加载单个js文件
+             * @param url js文件路径
+             * @param callback 回调方法
+             */
+            IndexMgr.prototype.loadSingleScript = function (url, callback) {
+                var elm = document.createElement('script');
+                elm.async = false;
+                elm.src = url;
+                var __loadComplete = function () {
+                    elm.parentNode && elm.parentNode.removeChild(elm);
+                    elm.removeEventListener('load', __loadComplete, false);
+                    callback && callback();
+                };
+                elm.addEventListener('load', __loadComplete, false);
+                document.body.appendChild(elm);
+            };
+            /**
+             * 获取版本号接口地址
+             */
+            IndexMgr.prototype.getVersionUrl = function () {
+                
+                var htgConfig = window.htgConfig || {};
+                
+                return htgConfig.getVersion || "";
+            };
+            /**
+             * http请求
+             */
+            IndexMgr.prototype.httpRequest = function ($url, $callback) {
+                var xhr = new XMLHttpRequest();
+                var __manifestComplete = function () {
+                    if(xhr.readyState == 4) {
+                        xhr.onreadystatechange = null;
+                        var resdata = {code:0, data:null};
+                        try {
+                            var jsondata = JSON.parse(xhr.response || "");
+                            resdata.code = 1;
+                            resdata.data = jsondata;
+                        } catch (e) {
+                            
+                        } finally {
+                            typeof $callback == "function" && $callback(resdata);
+                        }
+                    }
+                };
+                xhr.onreadystatechange = __manifestComplete;
+                xhr.open("GET", $url, true);
+                xhr.send(null);
+            }
+
+             /**
+             * 获取地址栏参数
+             * @private
+             */
+            IndexMgr.prototype.getParms = function () {
+                    if (this.parms) {
+                        return this.parms;
+                    }
+                    var str = window.location.search;
+                    if (!str) {
+                        return {};
+                    }
+                    this.parms = {};
+                    str = str.slice(1);
+                    var kv = str.split("&");
+                    var len = kv.length;
+                    for (var i = 0; i < len; i++) {
+                        var kvArr = kv[i].split("=");
+                        this.parms[kvArr[0]] = kvArr[1];
+                    }
+                    return this.parms;
+                }
+
+            return IndexMgr;
+        }());
+
+        //声明游戏入口类型：android原生包
+        window.HTG_ENT_TYPE = "android_mini";
+        //本地模板版本号,当服务器上的版本号大于本地版本号时为加载最新模板,否则加载本地模板
+        window.localTemp = 1;
+
+        var indexmgr = new IndexMgr();
+        indexmgr.requestVersion();</script>
+
+
+</body></html>
