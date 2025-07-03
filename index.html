@@ -1,7 +1,8 @@
-<!DOCTYPE html>
+<!DOCTYPE HTML>
+<html>
 
-<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    
+<head>
+    <meta charset="utf-8">
     <title>凡人神将传</title>
     <!-- 防止被缓存-->
     <meta http-equiv="Pragma" content="no-cache">
@@ -9,12 +10,12 @@
     <meta http-equiv="Expires" content="0">
     <!-- 极速模式-->
     <meta name="renderer" content="webkit">
-    <meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="full-screen" content="true">
-    <meta name="screen-orientation" content="portrait">
-    <meta name="x5-fullscreen" content="true">
-    <meta name="360-fullscreen" content="true">
+    <meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="full-screen" content="true" />
+    <meta name="screen-orientation" content="portrait" />
+    <meta name="x5-fullscreen" content="true" />
+    <meta name="360-fullscreen" content="true" />
     <style>
         html, body {
             -ms-touch-action: none;
@@ -30,177 +31,285 @@
 
 <body>
     <div id="game_rect" class="game_rect" style="position: absolute; margin: auto;width: 100%;height: 100%;overflow: hidden;pointer-events: none;"></div>
-<div id="egret-player" style="position: absolute; margin: auto; width: 100%; height: 100%; overflow: hidden;" class="egret-player" data-entry-class="SmallLoading" data-orientation="auto" data-scale-mode="noScale" data-frame-rate="60" data-content-width="540" data-content-height="960" data-show-paint-rect="false" data-multi-fingered="2" data-show-fps="false" data-show-log="false" data-show-fps-style="x:0,y:0,size:12,textColor:0xcccccc,bgAlpha:0.9">
-<canvas width="830" height="946" style="cursor: inherit; position: absolute; inset: -0.5px 0px 0px -0.5px; transform-origin: 0% 0% 0px; transform: matrix(1, 0, 0, 1, 0, 0);"></canvas><div id="StageDelegateDiv" style="position: absolute; left: -0.5px; top: -0.5px; border: none; padding: 0px; transform: matrix(1, 0, 0, 1, 0, 0); transform-origin: 0% 0% 0px;"><div style="position: absolute; left: 0px; top: -100px; border: none; padding: 0px; width: 0px; height: 0px; transform-origin: 0% 0% 0px;"><textarea id="egretTextarea" tabindex="-1" style="resize: none; width: 1px; height: 12px; position: absolute; left: 0px; top: 0px; border: none; padding: 0px; outline: thin; background: none; overflow: hidden; word-break: break-all; opacity: 0;"></textarea><input id="egretInput" type="text" tabindex="-1" style="width: 1px; height: 12px; position: absolute; left: 0px; top: 0px; border: none; padding: 0px; outline: thin; background: none; overflow: hidden; word-break: break-all; opacity: 0;"></div></div></div>
+<div id="egret-player" style="position: absolute; margin: auto;width: 100%;height: 100%" class="egret-player" data-entry-class="SmallLoading" data-orientation="auto" data-scale-mode="noScale" data-frame-rate="60"
+data-content-width="540" data-content-height="960" data-show-paint-rect="false" data-multi-fingered="2" data-show-fps="false"
+data-show-log="false" data-show-fps-style="x:0,y:0,size:12,textColor:0xcccccc,bgAlpha:0.9">
+</div>
 
 <!-- 启动页loading div -->
+<div id="loadingDiv" class="loadingDiv" style="position: absolute; margin: auto;top:0px; left:0px;right:0px;bottom:0px;width: 100px;height: 100px">
+<img src="resource/loading/loading_img.gif" id="loadImg" class="loadImg" style="position: absolute;top:34px; left:34px;width: 32px;height: 32px">
+</div>
 
+<script>
+    //声明游戏入口类型：web h5
+    window.HTG_ENT_TYPE = "web";
 
-<script>//index页工具类
-        var IndexMgr = /** @class */ (function () {
-            function IndexMgr() {
-               
-            }
-
+    //index页工具类
+    var IndexMgr = /** @class */ (function () {
+        function IndexMgr() {
             /**
-             * 请求版本号
-             * @param return response data:{mini(小游戏): 2, native(原生包): 1, web(网页): 3, temp(模板):4}
+             * 默认游戏舞台宽度
              */
-            IndexMgr.prototype.requestVersion = function () {
-
-                var _this = this;
-
-                var htgConfig = window.htgConfig || {};
-                
-                //测试服
-                var release = 0;
-                //测试服登录服地址
-                htgConfig.loginServer = "login-xzd-dev.skybluek.com";
-                //测试服请求版本号地址
-                htgConfig.getVersion = "login-xzd-dev.skybluek.com/ver/get";
-                //测试服模版地址
-                htgConfig.tempurl = "xzd-dev.skybluek.com";
-                //资源服务器地址
-                htgConfig.resServer = "https://xzd-dev.skybluek.com/";
-                
-                window.htgConfig = htgConfig;
-                
-                var verURL = _this.getVersionUrl();
-                
-                var requrl = window.location.protocol + "//" + verURL + "?ran=" + Math.random();
-
-                _this.httpRequest(requrl, function(res) {
-
-                    if(res && res.code == 1)
-                    {
-                        _this.loadHtgInitSdk(res.data, release);
-                    }
-                    else
-                    {
-                        console.log("请求版本号失败!", requrl);
-                    }
-                });
-            }
-
+            this.defaultStageWidth = 540;
             /**
-             * 加载htg_init_sdk文件 
+             * 默认游戏舞台高度
              */
-            IndexMgr.prototype.loadHtgInitSdk = function(jsondata, release) {
-
-                if(!jsondata) return;
-                
-                jsondata.release = release;
-                
-                //服务器取得的版本号，存储起来,用于加载指定版本的外部资源
-                jsondata.initweb = jsondata.web;
-
-                jsondata.inittemp = jsondata.temp;
-
-                if(window.localTemp >= jsondata.temp)
-                {
-                    //使用本地模板
-                    window.USE_LOCAL_TEMP = true;
-
-                    jsondata.temp = window.localTemp;
+            this.defaultStageHeight = 960;
+            this.urlParams = {};
+        }
+        /**
+         * 请求版本号
+         * @param return response data:{mini(小游戏): 2, native(原生包): 1, web(网页): 3}
+         */
+        IndexMgr.prototype.requestVersion = function () {
+            var verURL = this.getVersionUrl();
+            var reportURL = this.getErrorReportUrl();
+            var _this = this;
+            var requrl = window.location.protocol + "//" + verURL + "?ran=" + Math.random();
+            var errorUrl = window.location.protocol + "//" + reportURL + "?ran=" + Math.random();
+            var reqTime = new Date().getTime();
+            var resTime = 0;
+            this.httpRequest(requrl, function (res) {
+                if (res && res.code == 1) {
+                    var jsondata = res.data;
+                    window.versionData = jsondata;
+                    _this.loadSingleScript("./libs/webjs/htg_init_sdk_" + jsondata.web + ".js");
+                    resTime = new Date().getTime();
+                } else {
+                    console.log("请求版本号失败!", requrl);
+                    _this.httpRequestError(errorUrl, 1, '请求失败');
                 }
-                
-                console.log("正式服:" + !!jsondata.release);
-                
-                console.log("web版本:" + jsondata.web);
-                
-                console.log("模板版本:" + jsondata.temp);
-
-                window.versionData = jsondata;
-                
-                var resServer = window.htgConfig.resServer;
-                
-                this.loadSingleScript(resServer + "libs/webjs/htg_init_sdk_" + jsondata.web + ".js");
-            }
-
-            /**
-             * 加载单个js文件
-             * @param url js文件路径
-             * @param callback 回调方法
-             */
-            IndexMgr.prototype.loadSingleScript = function (url, callback) {
-                var elm = document.createElement('script');
-                elm.async = false;
-                elm.src = url;
-                var __loadComplete = function () {
-                    elm.parentNode && elm.parentNode.removeChild(elm);
-                    elm.removeEventListener('load', __loadComplete, false);
-                    callback && callback();
-                };
-                elm.addEventListener('load', __loadComplete, false);
-                document.body.appendChild(elm);
-            };
-            /**
-             * 获取版本号接口地址
-             */
-            IndexMgr.prototype.getVersionUrl = function () {
-                
-                var htgConfig = window.htgConfig || {};
-                
-                return htgConfig.getVersion || "";
-            };
-            /**
-             * http请求
-             */
-            IndexMgr.prototype.httpRequest = function ($url, $callback) {
-                var xhr = new XMLHttpRequest();
-                var __manifestComplete = function () {
-                    if(xhr.readyState == 4) {
-                        xhr.onreadystatechange = null;
-                        var resdata = {code:0, data:null};
-                        try {
-                            var jsondata = JSON.parse(xhr.response || "");
-                            resdata.code = 1;
-                            resdata.data = jsondata;
-                        } catch (e) {
-                            
-                        } finally {
-                            typeof $callback == "function" && $callback(resdata);
-                        }
-                    }
-                };
-                xhr.onreadystatechange = __manifestComplete;
-                xhr.open("GET", $url, true);
-                xhr.send(null);
-            }
-
-             /**
-             * 获取地址栏参数
-             * @private
-             */
-            IndexMgr.prototype.getParms = function () {
-                    if (this.parms) {
-                        return this.parms;
-                    }
-                    var str = window.location.search;
-                    if (!str) {
-                        return {};
-                    }
-                    this.parms = {};
-                    str = str.slice(1);
-                    var kv = str.split("&");
-                    var len = kv.length;
-                    for (var i = 0; i < len; i++) {
-                        var kvArr = kv[i].split("=");
-                        this.parms[kvArr[0]] = kvArr[1];
-                    }
-                    return this.parms;
+            })
+            setTimeout(function () {
+                if (!resTime) {
+                    _this.httpRequestError(errorUrl, 1, "超时");
                 }
+            }, 5000);
+        }
+        /**
+         * 加载单个js文件
+         * @param url js文件路径
+         * @param callback 回调方法
+         */
+        IndexMgr.prototype.loadSingleScript = function (url, callback) {
+            var elm = document.createElement('script');
+            elm.async = false;
+            elm.src = url;
+            var __loadComplete = function () {
+                elm.parentNode && elm.parentNode.removeChild(elm);
+                elm.removeEventListener('load', __loadComplete, false);
+                callback && callback();
+            };
+            elm.addEventListener('load', __loadComplete, false);
+            document.body.appendChild(elm);
+        };
+        /**
+         * 获取版本号接口地址
+         */
+        IndexMgr.prototype.getVersionUrl = function () {
 
-            return IndexMgr;
-        }());
+            var htgConfig = window.htgConfig || {};
 
-        //声明游戏入口类型：android原生包
-        window.HTG_ENT_TYPE = "android_mini";
-        //本地模板版本号,当服务器上的版本号大于本地版本号时为加载最新模板,否则加载本地模板
-        window.localTemp = 1;
+            return htgConfig.getVersion || "";
+        };
+        /**获取上报接口地址*/
+        IndexMgr.prototype.getErrorReportUrl = function () {
 
-        var indexmgr = new IndexMgr();
-        indexmgr.requestVersion();</script>
+            var htgConfig = window.htgConfig || {};
 
+            return htgConfig.errorReport || "";
+        };
+        /**
+         * http请求
+         */
+        IndexMgr.prototype.httpRequest = function ($url, $callback) {
+            var xhr = new XMLHttpRequest();
+            var __manifestComplete = function () {
+                if (xhr.readyState == 4) {
+                    xhr.onreadystatechange = null;
+                    var resdata = { code: 0, data: null };
+                    try {
+                        var jsondata = JSON.parse(xhr.response || "");
+                        resdata.code = 1;
+                        resdata.data = jsondata;
+                    } catch (e) {
 
-</body></html>
+                    } finally {
+                        typeof $callback == "function" && $callback(resdata);
+                    }
+                }
+            };
+            xhr.onreadystatechange = __manifestComplete;
+            xhr.open("GET", $url, true);
+            xhr.send(null);
+        }
+        /**get请求异常上报*/
+        IndexMgr.prototype.httpRequestError = function ($url, $type, $errmsg) {
+            var xhr = new XMLHttpRequest();
+
+            var obj = {
+                type: $type,
+                zone_key: this.urlParams["zoneKey"],
+                game: "凡人封妖传",
+                openid: this.urlParams["openId"],
+                data: $errmsg || ""
+            }
+            var postData = JSON.stringify(obj);
+            xhr.open("POST", $url, true);
+            xhr.setRequestHeader("Content-type", "application/json")
+            // xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
+            xhr.send(postData);
+        }
+
+        /**获取初始化的路径参数*/
+        IndexMgr.prototype.initURLParam = function () {
+            //获取url中"?"符后的字串
+            var search = window.location.search;
+            if (search) {
+                search = search.substr(1);
+                var arr = search.split("&");
+                var length_1 = arr.length;
+                var temp = void 0;
+                var paramArr = void 0;
+                for (var i = 0; i < length_1; i++) {
+                    temp = arr[i];
+                    if (temp.indexOf("=") == -1)
+                        continue;
+                    paramArr = temp.split("=");
+                    this.urlParams[paramArr[0]] = decodeURIComponent(paramArr[1]);
+                }
+            }
+        };
+        /**
+         * 初始化loadingDiv
+         * @param $initWidth div初始化宽度
+         * @param $initHeight div初始化高度
+         */
+        IndexMgr.prototype.init = function ($initWidth, $initHeight) {
+            this.initWidth = $initWidth;
+            this.initHeight = $initHeight;
+            window.addEventListener("resize", this.__resizeHandler);
+            this.__resizeHandler();
+        }
+        /**
+         * 视窗大小改变事件
+         * @private
+         */
+        IndexMgr.prototype.__resizeHandler = function () {
+            var _this = indexmgr;
+            var loadingDiv = document.getElementById("loadingDiv");
+            if (!loadingDiv) {
+                console.log("找不到loadingDiv");
+                window.removeEventListener("resize", _this.__resizeHandler);
+                return;
+            }
+            var divStyle = loadingDiv.style;
+            divStyle.position = "absolute";
+            divStyle.overflow = "hidden";
+            divStyle.cursor = "inherit";
+            divStyle.transform = "rotate(0deg)";
+            divStyle.top = "0px";
+            divStyle.left = "0px";
+            var egret_player = document.getElementById("egret-player");
+            if (!egret_player) {
+                console.log("找不到游戏播放器!");
+                return;
+            }
+            var orientation = egret_player.getAttribute("data-orientation") || "auto";
+            var scaleMode = egret_player.getAttribute("data-scale-mode");
+            var stageWidth = +egret_player.getAttribute("data-content-width") || _this.defaultStageWidth;
+            var stageHeight = +egret_player.getAttribute("data-content-height") || _this.defaultStageHeight;
+            var rect = egret_player.getBoundingClientRect();
+            var boundingClientWidth = rect.width;
+            var boundingClientHeight = rect.height;
+            var top = 0;
+            if (boundingClientWidth == 0 || boundingClientHeight == 0) {
+                console.log("游戏窗口大小错误!");
+                return;
+            }
+            var rectTop = rect.top;
+            if (rectTop < 0) {
+                boundingClientHeight += rectTop;
+            }
+            else if (rectTop > 0) {
+                top = rect.top;
+            }
+            var ua = navigator.userAgent.toLowerCase();
+            //是否是手机模式
+            var isMobile = (ua.indexOf('mobile') != -1 || ua.indexOf('android') != -1);
+            if (isMobile) {
+                orientation = "portrait";
+                scaleMode = "fixedNarrow";
+            }
+            //是否旋转
+            var shouldRotate = false;
+            if (orientation != "auto") {
+                shouldRotate = orientation != "portrait" && boundingClientHeight > boundingClientWidth
+                    || orientation == "portrait" && boundingClientWidth > boundingClientHeight;
+            }
+            var screenWidth = shouldRotate ? boundingClientHeight : boundingClientWidth;
+            var screenHeight = shouldRotate ? boundingClientWidth : boundingClientHeight;
+            //游戏缩放大小
+            var scaleValue = 1;
+            //缩放模式
+            switch (scaleMode) {
+                case "fixedHeight":
+                    scaleValue = (screenHeight / stageHeight) || 1;
+                    break;
+                case "fixedNarrow":
+                    scaleValue = Math.min(screenWidth / stageWidth, screenHeight / stageHeight);
+                    break;
+            }
+            //div实际宽度
+            var divWidth = Math.floor(_this.initWidth * scaleValue);
+            //div实际高度
+            var divHeight = Math.floor(_this.initHeight * scaleValue);
+            divStyle.width = divWidth + "px";
+            divStyle.height = divHeight + "px";
+            divStyle.display = "block";
+
+            if (shouldRotate) {
+                divStyle.transform = "rotate(-90deg)";
+                divStyle.top = top + Math.floor((boundingClientHeight - divHeight) / 2) + "px";
+                divStyle.left = (boundingClientWidth - divHeight) / 2 + Math.floor((boundingClientWidth - divWidth) / 2) + "px";
+            }
+            else {
+                divStyle.top = top + Math.floor((boundingClientHeight - divHeight)) + "px";
+                divStyle.left = Math.floor((boundingClientWidth - divWidth) / 2) + "px";
+            }
+
+            //设置loading gif位置
+            var img = document.getElementById("loadImg");
+            var imgrect = img ? img.getBoundingClientRect() : null;
+            rect = loadingDiv ? loadingDiv.getBoundingClientRect() : null;
+
+            if (imgrect && rect) {
+                var imgtop = divHeight - imgrect.height;
+
+                if (shouldRotate) {
+                    imgtop = rect.left < 0 ? imgtop - rect.left : imgtop;
+                }
+                else {
+                    imgtop = rect.top < 0 ? imgtop - rect.top : imgtop;
+                }
+                img.style.top = (imgtop / 2) + "px";
+                img.style.left = ((divWidth - imgrect.width) / 2) + "px";
+            }
+        }
+
+        return IndexMgr;
+    } ());
+
+    var indexmgr = new IndexMgr();
+
+    // indexmgr.init(540, 1188);
+
+    indexmgr.loadSingleScript("./libs/conf/htg_login_config.js?ran=" + Math.random(), function () {
+        indexmgr.initURLParam();
+        indexmgr.requestVersion();
+    });
+</script>
+</body>
+
+</html>
